@@ -1,0 +1,74 @@
+SERVICES AGREEMENT
+
+This Services Agreement ("Agreement") is entered into as of January 15, 2024
+by and between:
+
+Westbrook Capital Partners LLC, a Delaware limited liability company
+("Client"), and
+
+Meridian Consulting Group Inc., a New York corporation ("Service Provider").
+
+CASE NO.: CV-2024-00891-NYC
+
+WHEREAS, Client desires to retain Service Provider to perform certain
+consulting services as described herein; and
+
+WHEREAS, Service Provider desires to provide such services subject to the
+terms and conditions set forth in this Agreement;
+
+NOW THEREFORE, in consideration of the mutual covenants and agreements
+hereinafter set forth, the parties agree as follows:
+
+1. SERVICES
+Service Provider shall perform management consulting and strategic advisory
+services (the "Services") as outlined in Exhibit A attached hereto and
+incorporated herein by reference. Services shall commence on February 1, 2024
+and continue through December 31, 2024 unless earlier terminated.
+
+2. COMPENSATION
+Client shall pay Service Provider a monthly retainer fee of $45,000.00
+(forty-five thousand dollars), payable within 30 days of invoice. In addition,
+Client agrees to reimburse Service Provider for all reasonable out-of-pocket
+expenses not to exceed $5,000.00 per month without prior written approval.
+Total contract value: $540,000.00.
+
+3. CONFIDENTIALITY
+Each party acknowledges that it may receive Confidential Information of the
+other party. "Confidential Information" means any information disclosed that
+is designated as confidential or that reasonably should be understood to be
+confidential. This obligation of confidentiality shall survive termination of
+this Agreement for a period of three (3) years.
+
+4. GOVERNING LAW
+This Agreement shall be governed by and construed in accordance with the laws
+of the State of New York, without regard to its conflict of law provisions.
+Any disputes arising hereunder shall be resolved by binding arbitration in
+New York County, New York.
+
+5. TERMINATION
+Either party may terminate this Agreement upon thirty (30) days prior written
+notice to the other party. Client may terminate immediately for cause upon
+written notice if Service Provider materially breaches this Agreement and
+fails to cure such breach within fifteen (15) days after receipt of notice.
+
+6. LIMITATION OF LIABILITY
+In no event shall either party be liable for any indirect, incidental, special,
+or consequential damages. Service Provider's total liability under this
+Agreement shall not exceed the total fees paid in the three (3) months
+preceding the claim.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date
+first written above.
+
+WESTBROOK CAPITAL PARTNERS LLC          MERIDIAN CONSULTING GROUP INC.
+
+By: _____________________________       By: _____________________________
+Name: Jonathan R. Westbrook             Name: Sarah Chen
+Title: Managing Partner                 Title: Chief Executive Officer
+Date: January 15, 2024                  Date: January 15, 2024
+
+Counsel for Client:                     Counsel for Service Provider:
+Michael D. Harrison, Esq.               Patricia L. Nguyen, Esq.
+Bar No. 4521890                         Bar No. 3819045
+Harrison & Associates LLP               Nguyen Law Group PC
+350 Park Avenue, New York, NY 10022     200 Vesey Street, New York, NY 10281

@@ -1,0 +1,37 @@
+# Core document processing
+PyMuPDF==1.24.5
+pytesseract==0.3.10
+Pillow==10.4.0
+opencv-python-headless==4.10.0.84
+pdf2image==1.17.0
+
+# ML / Embeddings / Retrieval
+sentence-transformers==3.0.1
+chromadb==0.5.5
+rank-bm25==0.2.2
+numpy==1.26.4
+scikit-learn==1.5.1
+
+# LLM
+google-generativeai==0.7.2
+openai>=1.30.0
+
+# Data handling
+python-dotenv==1.0.1
+pydantic==2.8.2
+
+# UI
+streamlit==1.37.1
+
+# Diff / text utilities
+difflib  # stdlib
+python-Levenshtein==0.25.1
+
+# Testing
+pytest==8.3.2
+pytest-cov==5.0.0
+
+# Utilities
+rich==13.7.1
+loguru==0.7.2
+tqdm==4.66.5
