@@ -34,7 +34,7 @@ sudo apt-get install -y tesseract-ocr poppler-utils
 ### 1. Install
 
 ```bash
-cd legalMind
+cd Pdf-extractor-and-report-generation
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
