@@ -67,16 +67,16 @@ class HybridRetriever:
         top_k = top_k or config.RETRIEVAL_TOP_K
         fetch_k = top_k * 2  # fetch more from each source, then merge
 
-                query_embedding = embedder.embed_single(query).tolist()
+        query_embedding = embedder.embed_single(query).tolist()
         dense_results = vector_store.query(
             query_embedding=query_embedding,
             top_k=fetch_k,
             doc_id_filter=doc_id_filter,
         )
 
-                bm25_results = self._bm25.query(query, top_k=fetch_k)
+        bm25_results = self._bm25.query(query, top_k=fetch_k)
 
-                merged = _reciprocal_rank_fusion(dense_results, bm25_results, k=RRF_K)
+        merged = _reciprocal_rank_fusion(dense_results, bm25_results, k=RRF_K)
 
         # Annotate with component scores
         dense_map: Dict[str, float] = {r.chunk_id: r.dense_score for r in dense_results}

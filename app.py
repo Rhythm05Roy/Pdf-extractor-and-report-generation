@@ -153,7 +153,21 @@ with st.sidebar:
         import config as _cfg
         _cfg.GEMINI_API_KEY = gemini_key
 
-    if openai_key or gemini_key:
+    # Mistral key (priority 2 — OCR + LLM)
+    mistral_key = st.text_input(
+        "Mistral API Key (OCR + priority 2 LLM)",
+        value=os.getenv("MISTRAL_API_KEY", ""),
+        type="password",
+        placeholder="5Chu...",
+        help="Used for Mistral OCR (best quality) and as LLM fallback. Get a key at console.mistral.ai",
+        key="mistral_key_input",
+    )
+    if mistral_key and not mistral_key.startswith("your_"):
+        os.environ["MISTRAL_API_KEY"] = mistral_key
+        import config as _cfg
+        _cfg.MISTRAL_API_KEY = mistral_key
+
+    if openai_key or gemini_key or mistral_key:
         from generation.llm_client import reset_client
         reset_client()
 

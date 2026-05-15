@@ -47,7 +47,7 @@ def build_generation_prompt(
     """
     parts = [SYSTEM_INSTRUCTION, ""]
 
-        if learned_patterns:
+    if learned_patterns:
         patterns = learned_patterns[:config.MAX_PATTERNS_IN_PROMPT]
         parts.append("=== OPERATOR STYLE RULES (learned from prior edits) ===")
         for i, p in enumerate(patterns, 1):
@@ -59,7 +59,7 @@ def build_generation_prompt(
                 parts.append(f"   Example: {example}")
         parts.append("")
 
-        parts.append("=== DOCUMENT METADATA ===")
+    parts.append("=== DOCUMENT METADATA ===")
     parts.append(f"Document Type: {structured_doc.document_type.value}")
     parts.append(f"Case Number: {structured_doc.case_number or 'Not identified'}")
     if structured_doc.plaintiff:
@@ -74,7 +74,7 @@ def build_generation_prompt(
         parts.append(f"Amounts: {', '.join(structured_doc.monetary_amounts[:4])}")
     parts.append("")
 
-        parts.append("=== EVIDENCE CONTEXT ===")
+    parts.append("=== EVIDENCE CONTEXT ===")
     parts.append("The following passages are the ONLY basis for your draft.")
     parts.append("Reference them by their [CHUNK_ID] in your JSON output.\n")
 
@@ -83,7 +83,7 @@ def build_generation_prompt(
         parts.append(f'"""{chunk.text[:600]}"""')
         parts.append("")
 
-        parts.append("=== TASK ===")
+    parts.append("=== TASK ===")
     parts.append(
         "Using ONLY the evidence above, generate the Case Fact Summary Memo. "
         "Return ONLY valid JSON matching this schema exactly:\n"

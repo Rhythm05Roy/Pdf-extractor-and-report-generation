@@ -12,9 +12,15 @@ rank-bm25==0.2.2
 numpy==1.26.4
 scikit-learn==1.5.1
 
-# LLM
+# LLM & OCR APIs
+mistralai>=1.0.0
 google-generativeai==0.7.2
 openai>=1.30.0
+
+# API server
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
 
 # Data handling
 python-dotenv==1.0.1
@@ -24,7 +30,6 @@ pydantic==2.8.2
 streamlit==1.37.1
 
 # Diff / text utilities
-difflib  # stdlib
 python-Levenshtein==0.25.1
 
 # Testing

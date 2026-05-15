@@ -1,6 +1,6 @@
 """
-PDF text extraction using PyMuPDF with OCR fallback.
-Handles both native (selectable text) and scanned PDFs.
+PDF text extraction using PyMuPDF with Mistral OCR (primary) or
+Tesseract (fallback) for scanned / image-only pages.
 """
 import io
 import os
@@ -16,17 +16,85 @@ from ingestion.ocr_engine import extract_text_with_layout, is_tesseract_availabl
 
 # Threshold: if a page has fewer chars than this, assume it's scanned
 MIN_NATIVE_TEXT_CHARS = 50
-# DPI for rendering PDF pages to images for OCR
+# DPI for rendering PDF pages to images for Tesseract OCR
 OCR_DPI = 200
 
 
 def extract_from_pdf(pdf_path: str) -> List[PageContent]:
     """
     Extract text from every page of a PDF.
-    - If page has selectable text → use it directly
-    - If page is essentially blank → render and OCR
+
+    Strategy (in priority order):
+      1. Mistral OCR (whole-document, if API key is configured) — best quality
+      2. PyMuPDF native text per page
+      3. Tesseract OCR per image page (if Tesseract available)
+
     Returns a list of PageContent (one per page).
     """
+    import config
+
+    # --- Try Mistral whole-document OCR first ---
+    if config.USE_MISTRAL_OCR and config.MISTRAL_API_KEY:
+        try:
+            from ingestion.mistral_ocr import ocr_pdf_with_mistral, is_mistral_ocr_available
+            if is_mistral_ocr_available():
+                full_text, confidence = ocr_pdf_with_mistral(pdf_path)
+                if full_text:
+                    logger.info(
+                        f"Mistral OCR succeeded for {Path(pdf_path).name} "
+                        f"({len(full_text):,} chars, conf≈{confidence:.0%})"
+                    )
+                    # Split into per-page chunks for consistent downstream handling
+                    return _split_into_pages(pdf_path, full_text, confidence)
+        except Exception as e:
+            logger.warning(f"Mistral OCR failed, falling back to Tesseract: {e}")
+
+    # --- Per-page extraction (PyMuPDF native + Tesseract fallback) ---
+    return _extract_per_page(pdf_path)
+
+
+def _split_into_pages(pdf_path: str, full_text: str, confidence: float) -> List[PageContent]:
+    """
+    When Mistral returns a single blob, try to honour the real page count
+    by detecting Mistral's page separators or splitting evenly.
+    """
+    pages: List[PageContent] = []
+
+    # Mistral markdown typically emits a horizontal rule (---) between pages
+    import re
+    raw_pages = re.split(r"\n---\n", full_text)
+
+    # Also check the real page count from the PDF
+    try:
+        doc = fitz.open(pdf_path)
+        real_page_count = len(doc)
+        doc.close()
+    except Exception:
+        real_page_count = len(raw_pages)
+
+    # If Mistral's split doesn't match, treat as one page per chunk
+    if len(raw_pages) != real_page_count:
+        # Best effort: split by equal thirds of text if multiple pages
+        if real_page_count > 1 and len(raw_pages) == 1:
+            chunk_size = max(1, len(full_text) // real_page_count)
+            raw_pages = [
+                full_text[i * chunk_size: (i + 1) * chunk_size]
+                for i in range(real_page_count)
+            ]
+
+    for i, page_text in enumerate(raw_pages, 1):
+        pages.append(PageContent(
+            page_number=i,
+            raw_text=page_text.strip(),
+            ocr_confidence=confidence,
+            is_ocr=True,
+        ))
+
+    return pages
+
+
+def _extract_per_page(pdf_path: str) -> List[PageContent]:
+    """Original per-page extraction using PyMuPDF + Tesseract fallback."""
     pages: List[PageContent] = []
     tesseract_ok = is_tesseract_available()
 
@@ -36,7 +104,7 @@ def extract_from_pdf(pdf_path: str) -> List[PageContent]:
         logger.error(f"Cannot open PDF {pdf_path}: {e}")
         return []
 
-    logger.info(f"Processing PDF: {pdf_path} ({len(doc)} pages)")
+    logger.info(f"Processing PDF (per-page): {pdf_path} ({len(doc)} pages)")
 
     for page_num in range(len(doc)):
         page = doc[page_num]
@@ -46,7 +114,6 @@ def extract_from_pdf(pdf_path: str) -> List[PageContent]:
         native_text = page.get_text("text").strip()
 
         if len(native_text) >= MIN_NATIVE_TEXT_CHARS:
-            # Good native text — use as-is
             page_content = PageContent(
                 page_number=page_num + 1,
                 raw_text=native_text,

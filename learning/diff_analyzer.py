@@ -39,7 +39,7 @@ def analyze_edit(original: str, edited: str) -> Tuple[str, str, str]:
 
     ratio = difflib.SequenceMatcher(None, original, edited).ratio()
 
-        citation_pattern = r"(per\s+exhibit|exhibit\s+[a-z0-9]+|p\.\s*\d+|page\s+\d+|\[.*?\])"
+    citation_pattern = r"(per\s+exhibit|exhibit\s+[a-z0-9]+|p\.\s*\d+|page\s+\d+|\[.*?\])"
     added_citations = re.findall(citation_pattern, edited, re.IGNORECASE)
     original_citations = re.findall(citation_pattern, original, re.IGNORECASE)
     if len(added_citations) > len(original_citations):
@@ -49,7 +49,7 @@ def analyze_edit(original: str, edited: str) -> Tuple[str, str, str]:
             f'"{_short(original)}" → "{_short(edited)}"',
         )
 
-        if re.search(r"exhibit\s+[a-zA-Z0-9]+", edited, re.IGNORECASE) and \
+    if re.search(r"exhibit\s+[a-zA-Z0-9]+", edited, re.IGNORECASE) and \
        not re.search(r"exhibit\s+[a-zA-Z0-9]+", original, re.IGNORECASE):
         return (
             PatternType.EXHIBIT_REFERENCE,
@@ -57,7 +57,7 @@ def analyze_edit(original: str, edited: str) -> Tuple[str, str, str]:
             f'"{_short(original)}" → "{_short(edited)}"',
         )
 
-        qualifiers = ["alleged", "purported", "disputed", "claimed", "contended",
+    qualifiers = ["alleged", "purported", "disputed", "claimed", "contended",
                   "according to", "as stated in", "per the record"]
     added_quals = [q for q in qualifiers if q in edited.lower() and q not in original.lower()]
     if added_quals:
@@ -67,7 +67,7 @@ def analyze_edit(original: str, edited: str) -> Tuple[str, str, str]:
             f'"{_short(original)}" → "{_short(edited)}"',
         )
 
-        formal_indicators = {
+    formal_indicators = {
         "governing agreement": ["contract", "deal"],
         "pursuant to": ["under", "according to"],
         "herein": ["here", "in this"],
@@ -95,7 +95,7 @@ def analyze_edit(original: str, edited: str) -> Tuple[str, str, str]:
             f'"{_short(original)}" → "{_short(edited)}"',
         )
 
-        original_bullets = original.count("\n-") + original.count("\n•")
+    original_bullets = original.count("\n-") + original.count("\n•")
     edited_bullets = edited.count("\n-") + edited.count("\n•")
     if edited_bullets > original_bullets + 1:
         return (
@@ -104,7 +104,7 @@ def analyze_edit(original: str, edited: str) -> Tuple[str, str, str]:
             "",
         )
 
-        len_ratio = len(edited) / max(len(original), 1)
+    len_ratio = len(edited) / max(len(original), 1)
     if len_ratio > 1.4:
         return (
             PatternType.EXPANSION,

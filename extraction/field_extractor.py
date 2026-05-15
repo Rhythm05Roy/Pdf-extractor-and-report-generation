@@ -78,7 +78,7 @@ def extract_fields(extracted_doc: ExtractedDocument) -> StructuredDocument:
         ocr_quality=extracted_doc.avg_ocr_confidence,
     )
 
-        struct.case_number = _first_match(CASE_NUMBER_PATTERNS, text, "case_number", struct)
+    struct.case_number = _first_match(CASE_NUMBER_PATTERNS, text, "case_number", struct)
     struct.all_dates = _all_matches(DATE_PATTERNS, text)
     struct.filing_date = _infer_filing_date(text, struct.all_dates)
     struct.hearing_date = _infer_hearing_date(text, struct.all_dates)
@@ -90,7 +90,7 @@ def extract_fields(extracted_doc: ExtractedDocument) -> StructuredDocument:
     struct.parties = _collect_parties(struct)
     struct.key_clauses = _find_clauses(text)
 
-        try:
+    try:
         _enrich_with_llm(struct, text)
     except Exception as e:
         logger.warning(f"LLM enrichment failed: {e} — using regex results only")

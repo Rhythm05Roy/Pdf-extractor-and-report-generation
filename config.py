@@ -28,6 +28,11 @@ OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 TESSERACT_CMD: str = os.getenv("TESSERACT_CMD", "/usr/bin/tesseract")
 
+# Mistral (OCR + optional LLM)
+MISTRAL_API_KEY: str = os.getenv("MISTRAL_API_KEY", os.getenv("mistral_api", ""))
+MISTRAL_OCR_MODEL: str = os.getenv("MISTRAL_OCR_MODEL", "mistral-ocr-latest")
+USE_MISTRAL_OCR: bool = os.getenv("USE_MISTRAL_OCR", "true").lower() == "true"
+
 CHROMA_DB_PATH: str = os.getenv("CHROMA_DB_PATH", str(DATA_DIR / "chroma_db"))
 RETRIEVAL_TOP_K: int = int(os.getenv("RETRIEVAL_TOP_K", "8"))
 DENSE_WEIGHT: float = float(os.getenv("DENSE_WEIGHT", "0.6"))  # weight for vector similarity

@@ -1,0 +1,38 @@
+# ── Python / cache ────────────────────────────────────────────────────────────
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env
+
+# ── Generated runtime data (mounted as Docker volumes instead) ────────────────
+data/chroma_db/
+data/edits.db
+data/edit_patterns.json
+sample_outputs/
+
+# ── VCS & IDE ─────────────────────────────────────────────────────────────────
+.git/
+.github/
+.gitignore
+.vscode/
+.idea/
+
+# ── Build artifacts ───────────────────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+
+# ── OS noise ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+logs/
+*.tmp
+*.temp

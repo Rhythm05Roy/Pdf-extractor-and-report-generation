@@ -39,7 +39,7 @@ def generate_draft(
     warnings: List[str] = []
     memo_id = str(uuid.uuid4())
 
-        if not query:
+    if not query:
         parts = []
         if structured_doc.subject_matter:
             parts.append(structured_doc.subject_matter)
@@ -53,7 +53,7 @@ def generate_draft(
 
     logger.info(f"Generating draft for [{structured_doc.doc_id[:8]}], query: {query[:80]}...")
 
-        retrieved: List[RetrievedChunk] = retriever.retrieve(
+    retrieved: List[RetrievedChunk] = retriever.retrieve(
         query=query,
         top_k=config.MAX_EVIDENCE_CHUNKS,
         doc_id_filter=structured_doc.doc_id,
@@ -65,15 +65,15 @@ def generate_draft(
         if not retrieved:
             warnings.append("No relevant evidence found in document. Draft is unsupported.")
 
-        learned_patterns = []
+    learned_patterns = []
     try:
         learned_patterns = get_patterns_for_doc_type(structured_doc.document_type.value)
     except Exception as e:
         logger.debug(f"Could not load patterns: {e}")
 
-        prompt = build_generation_prompt(structured_doc, retrieved, learned_patterns)
+    prompt = build_generation_prompt(structured_doc, retrieved, learned_patterns)
 
-        client = get_llm_client()
+    client = get_llm_client()
     try:
         raw_response = client.generate(prompt, temperature=0.15)
     except Exception as e:
@@ -81,7 +81,7 @@ def generate_draft(
         warnings.append(f"LLM failed: {e}. Using minimal draft.")
         raw_response = _minimal_fallback_json(structured_doc)
 
-        try:
+    try:
         memo_data = _parse_llm_response(raw_response)
     except Exception as e:
         logger.error(f"Failed to parse LLM response: {e}")
@@ -89,11 +89,11 @@ def generate_draft(
         warnings.append(f"LLM output parse error: {e}")
         memo_data = _minimal_fallback_dict(structured_doc)
 
-        sections = _build_sections(memo_data)
+    sections = _build_sections(memo_data)
     section_chunk_ids = extract_chunk_ids_from_llm_output(memo_data)
     sections = link_citations(sections, retrieved, section_chunk_ids)
 
-        re_field = memo_data.get("memo_subject") or (
+    re_field = memo_data.get("memo_subject") or (
         f"Case Fact Summary — {structured_doc.case_number or structured_doc.document_type.value.title()}"
     )
 
@@ -235,8 +235,8 @@ def _minimal_fallback_dict(doc: StructuredDocument) -> dict:
         "executive_summary": f"Document type: {doc.document_type.value}. LLM analysis unavailable.",
         "parties": [{"role": "Plaintiff", "name": doc.plaintiff or "[Not identified]", "source": ""},
                     {"role": "Defendant", "name": doc.defendant or "[Not identified]", "source": ""}],
-        "material_facts": [{"fact": "Full AI analysis requires a valid GEMINI_API_KEY.", "source": ""}],
+        "material_facts": [{"fact": "Full AI analysis requires a valid API key.", "source": ""}],
         "key_dates": [{"date": d, "event": "Date identified in document", "source": ""} for d in doc.all_dates[:3]],
         "relevant_provisions": [],
-        "open_issues": ["Configure GEMINI_API_KEY for full AI-powered analysis."],
+        "open_issues": ["Configure OPENAI_API_KEY or MISTRAL_API_KEY for full AI-powered analysis."],
     }

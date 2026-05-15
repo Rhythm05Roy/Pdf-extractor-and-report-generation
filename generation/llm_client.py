@@ -1,6 +1,6 @@
 """
 LLM client abstraction layer.
-Priority chain: OpenAI → Gemini → Ollama → Stub
+Priority chain: OpenAI → Mistral → Gemini → Ollama → Stub
 
 Clients are initialized lazily and cached. Call reset_client() to force re-init
 (e.g. after updating the API key in the sidebar).
@@ -47,6 +47,56 @@ class OpenAIClient:
 
     def model_name(self) -> str:
         return f"openai/{self._model}"
+
+
+# Mistral LLM client
+class MistralLLMClient:
+    """Mistral chat-completion client (mistral-large-latest by default)."""
+
+    _FALLBACK_MODELS = ["mistral-large-latest", "mistral-small-latest", "open-mistral-7b"]
+
+    def __init__(self, api_key: str, model: str = "mistral-large-latest"):
+        from mistralai.client import Mistral
+        self._client = Mistral(api_key=api_key)
+        self._model  = model
+        logger.info(f"Mistral LLM client initialized: {model}")
+
+    def generate(self, prompt: str, temperature: float = 0.2) -> str:
+        last_error = None
+        models_to_try = [self._model] + [
+            m for m in self._FALLBACK_MODELS if m != self._model
+        ]
+        for model_name in models_to_try:
+            for attempt in range(3):
+                try:
+                    response = self._client.chat.complete(
+                        model=model_name,
+                        messages=[{"role": "user", "content": prompt}],
+                        temperature=temperature,
+                        response_format={"type": "json_object"},
+                    )
+                    self._model = model_name
+                    return response.choices[0].message.content
+                except Exception as e:
+                    err_str = str(e)
+                    if "not found" in err_str.lower() or "404" in err_str:
+                        last_error = e
+                        break  # try next model
+                    if attempt < 2:
+                        wait = 2 ** attempt
+                        logger.warning(
+                            f"Mistral attempt {attempt+1} failed: {e}. Retrying in {wait}s…"
+                        )
+                        time.sleep(wait)
+                    else:
+                        last_error = e
+                        break
+        raise RuntimeError(
+            f"All Mistral models failed. Last error: {last_error}"
+        )
+
+    def model_name(self) -> str:
+        return f"mistral/{self._model}"
 
 
 # Gemini client
@@ -191,7 +241,7 @@ _client: Optional[LLMClient] = None
 def get_llm_client() -> LLMClient:
     """
     Return the best available LLM client.
-    Priority: OpenAI → Gemini → Ollama → Stub
+    Priority: OpenAI → Mistral → Gemini → Ollama → Stub
     """
     global _client
     if _client is not None:
@@ -206,7 +256,16 @@ def get_llm_client() -> LLMClient:
         except Exception as e:
             logger.warning(f"OpenAI init failed: {e}")
 
-    # 2. Gemini
+    # 2. Mistral
+    mistral_key = getattr(config, "MISTRAL_API_KEY", "") or ""
+    if mistral_key and not mistral_key.startswith("your_"):
+        try:
+            _client = MistralLLMClient(mistral_key)
+            return _client
+        except Exception as e:
+            logger.warning(f"Mistral LLM init failed: {e}")
+
+    # 3. Gemini
     gemini_key = config.GEMINI_API_KEY or ""
     if gemini_key and not gemini_key.startswith("your_"):
         try:
@@ -215,7 +274,7 @@ def get_llm_client() -> LLMClient:
         except Exception as e:
             logger.warning(f"Gemini init failed: {e}")
 
-    # 3. Ollama
+    # 4. Ollama
     if config.USE_OLLAMA_FALLBACK:
         try:
             _client = OllamaClient(config.OLLAMA_MODEL, config.OLLAMA_BASE_URL)
@@ -223,9 +282,9 @@ def get_llm_client() -> LLMClient:
         except Exception as e:
             logger.warning(f"Ollama init failed: {e}")
 
-    # 4. Stub
+    # 5. Stub
     logger.warning(
-        "No LLM configured. Add OPENAI_API_KEY or GEMINI_API_KEY to .env"
+        "No LLM configured. Add OPENAI_API_KEY, MISTRAL_API_KEY, or GEMINI_API_KEY to .env"
     )
     _client = StubClient()
     return _client

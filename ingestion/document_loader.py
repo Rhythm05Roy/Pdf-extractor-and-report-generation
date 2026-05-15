@@ -91,14 +91,30 @@ def _load_pdf(path: str, doc_id: str, file_size: int) -> ExtractedDocument:
 
 def _load_image(path: str, doc_id: str, file_size: int) -> ExtractedDocument:
     from PIL import Image
-    from ingestion.ocr_engine import extract_text_with_layout
+    import config
 
-    try:
-        pil_image = Image.open(path)
-        text, confidence = extract_text_with_layout(pil_image)
-    except Exception as e:
-        logger.error(f"Failed to OCR image {path}: {e}")
-        text, confidence = "", 0.0
+    text, confidence = "", 0.0
+
+    # Try Mistral OCR first
+    if config.USE_MISTRAL_OCR and config.MISTRAL_API_KEY:
+        try:
+            from ingestion.mistral_ocr import ocr_image_with_mistral, is_mistral_ocr_available
+            if is_mistral_ocr_available():
+                pil_image = Image.open(path)
+                text, confidence = ocr_image_with_mistral(pil_image)
+                logger.info(f"Mistral image OCR: {len(text):,} chars (conf≈{confidence:.0%})")
+        except Exception as e:
+            logger.warning(f"Mistral image OCR failed: {e}, falling back to Tesseract")
+
+    # Fallback to Tesseract
+    if not text:
+        try:
+            from ingestion.ocr_engine import extract_text_with_layout
+            pil_image = Image.open(path)
+            text, confidence = extract_text_with_layout(pil_image)
+        except Exception as e:
+            logger.error(f"Failed to OCR image {path}: {e}")
+            text, confidence = "", 0.0
 
     warnings = []
     if confidence < 0.4:

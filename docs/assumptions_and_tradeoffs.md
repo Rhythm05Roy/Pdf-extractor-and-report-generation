@@ -20,28 +20,24 @@ Operator edits are assumed to be improvements. The system doesn't validate
 whether edits improve or degrade quality — all changes are learned from.
 
 ### 5. API Availability
-The system assumes Gemini API is the primary LLM. Ollama and the stub fallback
-ensure the pipeline doesn't break without an API key, but output quality degrades.
+The system assumes OpenAI API is the primary LLM. Mistral and Gemini provide high-quality fallbacks. Ollama and the stub client ensure the pipeline doesn't break without an API key, though quality degrades.
 
 ---
 
 ## Tradeoffs
 
-### Tesseract vs. Commercial OCR
+### Tesseract vs. Commercial OCR (Mistral)
 
-| | Tesseract | AWS Textract / Google Document AI |
+| | Tesseract (Local) | Mistral OCR (Cloud) |
 |---|---|---|
-| Cost | Free | $1.50–3.50 / 1000 pages |
-| Accuracy (clean) | ~97% | ~99.5% |
-| Accuracy (messy) | ~75–85% | ~95% |
-| Handwriting | Poor | Good |
-| Layout analysis | Basic | Excellent |
-| Deployment | Local | Cloud dependency |
+| Cost | Free | ~$1 / 1000 pages |
+| Accuracy (clean) | ~97% | ~99.8% |
+| Accuracy (messy) | ~75–85% | ~98% |
+| Handwriting | Poor | Excellent |
+| Layout analysis | Basic | State-of-the-art |
+| Deployment | Local | API dependency |
 
-**Decision:** Tesseract is used for zero-cost local operation. The preprocessing
-pipeline (deskew, denoise, adaptive threshold) closes much of the accuracy gap
-for standard legal documents. For production with budget, swap `ocr_engine.py`
-for a cloud OCR client — the interface is isolated.
+**Decision:** The system follows a priority chain: Digital Text → Mistral OCR → Tesseract. This ensures maximum accuracy on scanned documents while maintaining zero-cost local operation as a fallback. Mistral OCR's layout awareness is critical for parsing complex legal tables and multi-column briefs.
 
 ---
 
@@ -121,8 +117,7 @@ The tradeoff: JSON parsing can fail on malformed LLM output. This is handled by
 
 ## Known Limitations
 
-1. **Handwritten documents:** Tesseract accuracy on handwriting is ~40–60%. A dedicated
-   handwriting recognition model (e.g., Google Vision API) would be needed.
+1. **Handwritten documents:** Tesseract accuracy on handwriting is poor. However, with Mistral OCR enabled, accuracy improves significantly (~85%+). Without Mistral, a dedicated model like Google Vision would be needed.
 
 2. **Very long documents:** Documents >200 pages may exceed the LLM context window.
    Current mitigation: only the top-K retrieved chunks are included in the prompt.

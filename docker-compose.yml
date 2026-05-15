@@ -1,0 +1,58 @@
+services:
+  # ── FastAPI REST API ──────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      target: runtime
+    image: legalmind:latest
+    container_name: legalmind-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      # Persist ChromaDB, SQLite edits DB and patterns across restarts
+      - legalmind_data:/app/data
+      # Mount sample inputs so you can drop files in without rebuilding
+      - ./data/sample_inputs:/app/data/sample_inputs:ro
+      # Persist generated draft outputs
+      - ./sample_outputs:/app/sample_outputs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    command: uvicorn api:app --host 0.0.0.0 --port 8000
+
+  # ── Streamlit Operator UI ─────────────────────────────────────────────────────
+  ui:
+    build:
+      context: .
+      target: runtime
+    image: legalmind:latest
+    container_name: legalmind-ui
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    volumes:
+      - legalmind_data:/app/data
+      - ./data/sample_inputs:/app/data/sample_inputs:ro
+      - ./sample_outputs:/app/sample_outputs
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    command: >
+      streamlit run app.py
+      --server.port 8501
+      --server.address 0.0.0.0
+      --server.headless true
+      --server.fileWatcherType none
+
+# ── Named volumes ─────────────────────────────────────────────────────────────
+volumes:
+  legalmind_data:
+    driver: local
